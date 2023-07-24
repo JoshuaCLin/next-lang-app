@@ -1,0 +1,20 @@
+# Node.js / npm
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Next.js build output
+/.next/
+/out/
+json
+
+# IDE/Editor specific files
+.vscode/
+.idea/
+*.iml
+*.swp
+*.bak
+
+# OS generated files
+.DS_Store
+Thumbs.db
