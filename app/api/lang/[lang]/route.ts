@@ -16,7 +16,6 @@ export async function GET(req: NextRequest, { params }: { params: { lang: string
 export async function POST(req: Request, { params }: { params: { lang: string } }) {
   const { lang } = params;
   const payload = await req.json();
-  console.log(payload);
 
   const updatedData = JSON.stringify(payload);
   await writeFileSync(path.join(process.cwd(), `json/${lang}.json`), updatedData);

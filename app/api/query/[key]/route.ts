@@ -10,7 +10,6 @@ export function GET(req: NextRequest, {params}: {params: {key: string}}) {
     const content = readFileSync(path.join(process.cwd(), 'json', file));
     const data = JSON.parse(content.toString());
     pre = { ...pre, [file.split('.')[0]]: data[key] ?? ''}
-    console.log(pre);
     return pre;
   }, {});
   return NextResponse.json(result);

@@ -26,6 +26,18 @@ const InputGroup = styled.div`
     border-radius: 0.5rem;
   }
 `;
+
+const PopInfoGroup = styled.div`
+  display: flex;
+  margin: 0.75rem auto;
+`;
+
+const PopInfoTitle = styled.div`
+  width: 3rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+`;
+
 const Label = styled.label`
   font-size: 1.25rem;
   font-weight: 700;
@@ -84,14 +96,15 @@ const ButtonGroupsContainer = styled.div`
 export default function Home() {
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps['options']>([]);
-  const [selected, setSelect] = useState('');
+  const [selected, setSelect] = useState('zh');
   const [dic, setDic] = useState<{ [key: string]: string }>();
   const [modifyKey, setModifyKey] = useState('');
-  const [newItem, setNewItem] = useState<{ key: string; [filename: string]: string }>({
+  const [newItem, setNewItem] = useState<{ key: string;[filename: string]: string }>({
     key: '',
   });
   const [showModal, setShowModal] = useState(false);
   const [zhList, setZhList] = useState([]);
+  const [showPopKey, setShowPopKey] = useState(false)
 
   const getDic = async (value: string) => {
     const dic = await fetch(`/api/lang/${value}`)
@@ -118,7 +131,7 @@ export default function Home() {
       .catch((err) => console.error(err));
     if (resp) {
       if (type == 'temp') {
-        alert('暫存成功');
+        // alert('暫存成功');
       } else {
         alert('saved');
       }
@@ -133,44 +146,61 @@ export default function Home() {
 
     // Send API request to delete the specified key's data
     const resp = await fetch(`/api/lang/${selected}`, {
-      method: 'POST',
+      method: 'DELETE',
       body: JSON.stringify({ key: key }), // 將要刪除的 key 作為請求的內容
     }).catch((err) => console.error(err));
 
     if (resp) {
-      alert('deleted');
-
-      // Filter out the deleted key from the state
       const updatedDic = { ...dic };
       delete updatedDic[key];
       setDic(updatedDic);
 
-      // Filter out the deleted key from zhList state if it exists
       const updatedZhList = { ...zhList };
       if (updatedZhList.hasOwnProperty(key)) {
         delete updatedZhList[key];
         setZhList(updatedZhList);
       }
-
-      // Save the changes immediately after successful delete
       saveDic('temp');
     } else {
       alert('Failed to delete');
     }
   };
 
-  // const options: SelectProps["options"] = [];
-
   const keySearchHandler = async () => {
-    if(newItem.key ==="") {
+    setShowPopKey(true)
+    if (newItem.key.trim() === "") {
       alert("請輸入有效 Key 值")
       return
     }
-    const res = await fetch(`/api/query/${newItem.key}`).then(res => res.json());
+    const startsWithNumber = /^[0-9]/.test(newItem.key.trim());
+    if (startsWithNumber) {
+      alert("Key 值不能以數字開頭");
+      return;
+    }
+    const res = await fetch(`/api/query/${newItem.key.trim()}`).then(res => res.json());
     if (res) {
-      setNewItem(pre => ({...pre, ...res}));
+      setNewItem(pre => ({ ...pre, ...res }));
       setShowModal(true);
     }
+  }
+
+// 在clickSearch()中
+const clickSearch = async (name: string) => {
+  setShowPopKey(false);
+
+  newItem.key = name
+
+  const res = await fetch(`/api/query/${newItem.key.trim()}`).then(res => res.json());
+  if (res) {
+    setNewItem(pre => ({ ...pre, ...res }));
+    setShowModal(true);
+  }
+
+  setShowModal(true);
+}
+
+  const addNewJsonHandler = async () => {
+    console.log('新增語系')
   }
 
   useEffect(() => {
@@ -178,14 +208,15 @@ export default function Home() {
       const files = await fetch('/api/lang', { method: 'GET' })
         .then((res) => res.json())
         .catch((err) => console.error(err));
-      console.log(files);
+      console.log("files ---->", files);
       if (files) {
         const arr: SelectProps['options'] = [];
         files.forEach((i: any) => {
           arr.push({ label: i, value: i });
         });
-        console.log(`==arr==`, arr);
         setFiles(arr);
+        setSelect('zh');
+        getDic('zh');
       }
     }
 
@@ -205,41 +236,22 @@ export default function Home() {
       </BtnContainer>
 
       <br />
-      {/* <InputContainer>
-        <InputGroup>
-          <Label>Key: </Label>
-          <input value={newItem.key} onChange={(event) => setNewItem((pre) => ({ ...pre, key: event.target.value }))} placeholder="請輸入key" />
-        </InputGroup>
-        <InputGroup>
-          <Label>Value: </Label>
-          <input value={newItem.value} onChange={(event) => setNewItem((pre) => ({ ...pre, value: event.target.value }))} />
-        </InputGroup>
 
-        <Button
-          onClick={() => {
-            if ((dic as any)[newItem.key] !== undefined) {
-              alert('duplicate');
-              return;
-            }
-            setDic((pre) => ({ ...pre, [newItem.key]: newItem.value }));
-            setNewItem({ key: '', value: '' });
-          }}
-        >
-          新增Key
-        </Button>
-      </InputContainer> */}
       <InputGroup>
-          <Label style={{margin: '1.5rem'}}>Key: </Label>
-          <input value={newItem.key} onChange={(event) => setNewItem((pre) => ({ ...pre, key: event.target.value }))} placeholder="請輸入key" />
+        <Label style={{ margin: '1.5rem' }}>Key: </Label>
+        <input value={newItem.key} onChange={(event) => setNewItem((pre) => ({ ...pre, key: event.target.value }))} placeholder="請輸入key" />
       </InputGroup>
       <Button onClick={keySearchHandler} style={{ margin: '1.5rem' }}>
-        新增字典檔
+        新增 Key & Value
+      </Button>
+
+      <Button type="primary" onClick={addNewJsonHandler} style={{ margin: '1.5rem' }}>
+        新增語系檔
       </Button>
 
       <InputContainer>
         <Select
-          // value={selected}
-          // placeholder="please select"
+          value={selected}
           style={{ width: '15rem' }}
           onChange={getDic}
           options={files}
@@ -259,8 +271,7 @@ export default function Home() {
             {dic &&
               Object.keys(dic).map((key) => (
                 <tr key={key}>
-                  <Td>{key}</Td>
-                  {/* <Td style={{ background: "#FFF0AC" }}> */}
+                  <Td onClick={() => clickSearch(key)}>{key}</Td>
                   <Td>
                     {modifyKey === key && (
                       <input
@@ -317,12 +328,12 @@ export default function Home() {
       </TableContainer>
 
       <Modal
-        title="New Key and Values"
+        title={showPopKey ? "Add 新增" : "Edit 編輯"}
         open={showModal}
         onOk={async () => {
-          const res = await fetch('/api/create', {method: 'POST', body: JSON.stringify(newItem)});
+          const res = await fetch('/api/create', { method: 'POST', body: JSON.stringify(newItem) });
           if (res) {
-            setNewItem({key: ''});
+            setNewItem({ key: '' });
             alert('saved all');
             setShowModal(false);
           } else {
@@ -336,16 +347,18 @@ export default function Home() {
         <>
           <InputGroup>
             <Label>Key: </Label>
-            <input value={newItem.key} readOnly placeholder="請輸入key" />
+            <input value={newItem.key} placeholder="請輸入key" />
           </InputGroup>
           {(files ?? []).map((opt) => (
             <InputGroup>
-              <Label>{opt.label}: </Label>
-              <input
-                value={newItem[opt.label as string]}
-                onChange={(event) => setNewItem((pre) => ({ ...pre, [opt.label as string]: event.target.value }))}
-                placeholder="請輸入key"
-              />
+              <PopInfoGroup>
+                <PopInfoTitle>{opt.label}</PopInfoTitle>
+                <input
+                  value={newItem[opt.label as string]}
+                  onChange={(event) => setNewItem((pre) => ({ ...pre, [opt.label as string]: event.target.value }))}
+                  placeholder="請輸入 value"
+                />
+              </PopInfoGroup>
             </InputGroup>
           ))}
         </>
