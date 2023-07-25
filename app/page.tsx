@@ -107,9 +107,9 @@ export default function Home() {
   });
   const [showModal, setShowModal] = useState(false);
   const [showAddJsonModal, setShowAddJsonModal] = useState(false);
-  const [newLang, setNewLang] = useState("");
+  const [newJsonName, setNewJsonName] = useState("");
   const [newLangContent, setNewLangContent] = useState("");
-  const [zhList, setZhList] = useState([]);
+  const [zhList, setZhList] = useState({});
   const [showPopKey, setShowPopKey] = useState(false);
   // const { TextArea } = Input;
   const getDic = async (value: string) => {
@@ -128,7 +128,7 @@ export default function Home() {
     setZhList(zhDic);
   };
 
-  const saveDic = async (type: string) => {
+  const saveDic = async () => {
     const resp = await fetch(`/api/lang/${selected}`, {
       method: "POST",
       body: JSON.stringify(dic),
@@ -136,11 +136,7 @@ export default function Home() {
       .then((res) => res.json())
       .catch((err) => console.error(err));
     if (resp) {
-      if (type == "temp") {
-        // alert('暫存成功');
-      } else {
-        alert("saved");
-      }
+      alert("saved");
     }
   };
 
@@ -150,23 +146,16 @@ export default function Home() {
       return;
     }
 
-    // Send API request to delete the specified key's data
+    // remove first
+    delete (dic as any)[key]
+
     const resp = await fetch(`/api/lang/${selected}`, {
-      method: "DELETE",
-      body: JSON.stringify({ key: key }), // 將要刪除的 key 作為請求的內容
+      method: "POST",
+      body: JSON.stringify( dic ),
     }).catch((err) => console.error(err));
 
     if (resp) {
-      const updatedDic = { ...dic };
-      delete updatedDic[key];
-      setDic(updatedDic);
-
-      const updatedZhList = { ...zhList };
-      if (updatedZhList.hasOwnProperty(key)) {
-        delete updatedZhList[key];
-        setZhList(updatedZhList);
-      }
-      saveDic("temp");
+      setDic({...dic});
     } else {
       alert("Failed to delete");
     }
@@ -214,7 +203,47 @@ export default function Home() {
     console.log("新增語系");
   };
 
-  const addNewLangJson = () => {};
+  const addNewLangJson = async () => {
+    const containsSpecialChars = /[^A-Za-z0-9_]/.test(newJsonName.trim());
+    const containsSpaces = /\s/.test(newJsonName.trim());
+  
+    if (containsSpecialChars || containsSpaces) {
+      setNewJsonName("")
+      alert("語系及檔名只能包含字母、數字和底線，不能包含特殊符號和空白");
+      return;
+    }
+
+    const zhData = await fetch(`/api/lang/zh`).then(res => res.json())
+
+    const newJson = await fetch(`/api/lang/${newJsonName.trim()}`, {
+      method: "POST",
+      body: JSON.stringify(zhData),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+
+    console.log("新增的是 --->", newJson)
+
+    getFiles()
+
+    console.log(newJsonName)
+    setShowAddJsonModal((prev) => !prev);
+  };
+
+  const getFiles = async () => {
+    const files = await fetch("/api/lang", { method: "GET" })
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
+      console.log("files ---->", files);
+      if (files) {
+        const arr: SelectProps["options"] = [];
+        files.forEach((i: any) => {
+          arr.push({ label: i, value: i });
+        });
+        setFiles(arr);
+      }
+  }
 
   useEffect(() => {
     async function init() {
@@ -244,14 +273,10 @@ export default function Home() {
     console.log(`=====newLang==========`, newLangContent);
   }, [newLangContent]);
 
-  const addNewLang = () => {
-    
-  };
-
   return (
     <Main>
       <BtnContainer>
-        <Button onClick={() => saveDic("")} ghost>
+        <Button onClick={() => saveDic()} ghost>
           Save
         </Button>
       </BtnContainer>
@@ -379,6 +404,7 @@ export default function Home() {
           if (res) {
             setNewItem({ key: "" });
             alert("saved all");
+            getDic(selected);
             setShowModal(false);
           } else {
             alert("Error");
@@ -419,13 +445,13 @@ export default function Home() {
         onCancel={() => {
           setShowAddJsonModal(false);
         }}
-        onOk={addNewLang}
+        onOk={addNewLangJson}
       >
         <InputGroup>
           <Label>語系：</Label>
           <input
-            value={newLang}
-            onChange={(event) => setNewLang(event.target.value)}
+            value={newJsonName}
+            onChange={(event) => setNewJsonName(event.target.value)}
             placeholder="請輸入語系及檔名"
           />
         </InputGroup>
