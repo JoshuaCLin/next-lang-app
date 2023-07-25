@@ -133,7 +133,7 @@ export default function Home() {
 
     // Send API request to delete the specified key's data
     const resp = await fetch(`/api/lang/${selected}`, {
-      method: 'DELETE',
+      method: 'POST',
       body: JSON.stringify({ key: key }), // 將要刪除的 key 作為請求的內容
     }).catch((err) => console.error(err));
 
@@ -160,6 +160,18 @@ export default function Home() {
   };
 
   // const options: SelectProps["options"] = [];
+
+  const keySearchHandler = async () => {
+    if(newItem.key ==="") {
+      alert("請輸入有效 Key 值")
+      return
+    }
+    const res = await fetch(`/api/query/${newItem.key}`).then(res => res.json());
+    if (res) {
+      setNewItem(pre => ({...pre, ...res}));
+      setShowModal(true);
+    }
+  }
 
   useEffect(() => {
     async function init() {
@@ -193,7 +205,6 @@ export default function Home() {
       </BtnContainer>
 
       <br />
-      <div></div>
       {/* <InputContainer>
         <InputGroup>
           <Label>Key: </Label>
@@ -218,18 +229,10 @@ export default function Home() {
         </Button>
       </InputContainer> */}
       <InputGroup>
-          <Label>Key: </Label>
+          <Label style={{margin: '1.5rem'}}>Key: </Label>
           <input value={newItem.key} onChange={(event) => setNewItem((pre) => ({ ...pre, key: event.target.value }))} placeholder="請輸入key" />
-        </InputGroup>
-      <Button
-        onClick={async () => {
-          const res = await fetch(`/api/query/${newItem.key}`).then(res => res.json());
-          if (res) {
-            setNewItem(pre => ({...pre, ...res}));
-            setShowModal(true);
-          }
-        }}
-      >
+      </InputGroup>
+      <Button onClick={keySearchHandler} style={{ margin: '1.5rem' }}>
         新增字典檔
       </Button>
 
