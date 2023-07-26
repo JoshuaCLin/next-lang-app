@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
-import { Button, Checkbox, Form, Input } from "antd";
+import { Button, Form, Input } from "antd";
 import styled from "styled-components";
 
 const Container = styled.div`
-  display: flex;
-  justify-content: center;
+  text-align: center;
   margin-top: 5rem;
 `;
 
@@ -36,11 +35,12 @@ const LoginPage = () => {
 
   return (
     <Container>
+      <h1>語言包管理系統</h1>
       <Form
         name="basic"
-        labelCol={{ span: 8 }}
+        labelCol={{ span: 5 }}
         wrapperCol={{ span: 16 }}
-        style={{ maxWidth: 600 }}
+        style={{ maxWidth: 600, margin: "20px auto"  }}
         initialValues={{ remember: true }}
         onFinish={loginHandler}
         // onFinishFailed={onFinishFailed}
@@ -68,19 +68,9 @@ const LoginPage = () => {
           />
         </Form.Item>
 
-        <Form.Item
-          name="remember"
-          valuePropName="checked"
-          wrapperCol={{ offset: 8, span: 16 }}
-        >
-          <Checkbox>Remember me</Checkbox>
-        </Form.Item>
-
-        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
       </Form>
     </Container>
   );
