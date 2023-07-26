@@ -168,7 +168,10 @@ export default function Home() {
       });
   
       if (resp.ok) {
-        setDic({ ...dic });
+        // 刪除成功後，重新獲取字典資料
+        const updatedDic = { ...dic };
+        delete updatedDic[key]; // 從更新後的字典中刪除對應的 key
+        setDic(updatedDic); // 設定新的字典狀態
       } else {
         alert("Failed to delete");
       }
@@ -177,6 +180,7 @@ export default function Home() {
       alert("Failed to delete");
     }
   };
+  
 
   const keySearchHandler = async () => {
     setShowPopKey(true);
