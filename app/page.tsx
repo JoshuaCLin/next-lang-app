@@ -10,7 +10,7 @@ const Main = styled.div``;
 
 const BtnContainer = styled.div`
   background: black;
-  padding: 1.5rem;
+  padding: 0.5rem;
 `;
 
 const InputContainer = styled.div`
@@ -107,6 +107,7 @@ export default function Home() {
   });
   const [showModal, setShowModal] = useState(false);
   const [showAddJsonModal, setShowAddJsonModal] = useState(false);
+  const [showDelJsonModal, setShowDelJsonModal] = useState(false);
   const [newJsonName, setNewJsonName] = useState("");
   const [newLangContent, setNewLangContent] = useState("");
   const [zhList, setZhList] = useState({});
@@ -147,15 +148,15 @@ export default function Home() {
     }
 
     // remove first
-    delete (dic as any)[key]
+    delete (dic as any)[key];
 
     const resp = await fetch(`/api/lang/${selected}`, {
       method: "POST",
-      body: JSON.stringify( dic ),
+      body: JSON.stringify(dic),
     }).catch((err) => console.error(err));
 
     if (resp) {
-      setDic({...dic});
+      setDic({ ...dic });
     } else {
       alert("Failed to delete");
     }
@@ -203,59 +204,69 @@ export default function Home() {
     console.log("新增語系");
   };
 
+  const deleteJsonHandler = async () => {
+    setShowDelJsonModal(true);
+  };
+
   const addNewLangJson = async () => {
     const containsSpecialChars = /[^A-Za-z0-9_]/.test(newJsonName.trim());
     const containsSpaces = /\s/.test(newJsonName.trim());
-  
+
     if (containsSpecialChars || containsSpaces) {
-      setNewJsonName("")
+      setNewJsonName("");
       alert("語系及檔名只能包含字母、數字和底線，不能包含特殊符號和空白");
       return;
     }
 
-    const zhData = await fetch(`/api/lang/zh`).then(res => res.json())
+    const zhData = await fetch(`/api/lang/zh`).then((res) => res.json());
 
     const newJson = await fetch(`/api/lang/${newJsonName.trim()}`, {
       method: "POST",
       body: JSON.stringify(zhData),
       headers: {
-        'Content-Type': 'application/json',
-      }
-    })
+        "Content-Type": "application/json",
+      },
+    });
 
-    console.log("新增的是 --->", newJson)
+    console.log("新增的是 --->", newJson);
 
-    getFiles()
+    getFiles();
 
-    console.log(newJsonName)
+    console.log(newJsonName);
     setShowAddJsonModal((prev) => !prev);
   };
 
   const getFiles = async () => {
     const files = await fetch("/api/lang", { method: "GET" })
-        .then((res) => res.json())
-        .catch((err) => console.error(err));
-      console.log("files ---->", files);
-      if (files) {
-        const arr: SelectProps["options"] = [];
-        files.forEach((i: any) => {
-          arr.push({ label: i, value: i });
-        });
-        setFiles(arr);
-      }
-  }
+      .then((res) => res.json())
+      .catch((err) => console.error(err));
+    console.log("files ---->", files);
+    if (files) {
+      const arr: SelectProps["options"] = [];
+      files.forEach((i: any) => {
+        arr.push({ label: i, value: i });
+      });
+      setFiles(arr);
+    }
+  };
 
   useEffect(() => {
     async function init() {
       const files = await fetch("/api/lang", { method: "GET" })
         .then((res) => res.json())
         .catch((err) => console.error(err));
+      files.sort().reverse();
+      if (files[0] !== "zh") {
+        const index = files.indexOf("zh");
+        files.unshift(files.splice(index, 1)[0]);
+      }
       console.log("files ---->", files);
       if (files) {
         const arr: SelectProps["options"] = [];
         files.forEach((i: any) => {
           arr.push({ label: i, value: i });
         });
+
         setFiles(arr);
         setSelect("zh");
         getDic("zh");
@@ -273,11 +284,27 @@ export default function Home() {
     console.log(`=====newLang==========`, newLangContent);
   }, [newLangContent]);
 
+  // if (dic) {
+  //   console.log(Object.keys(dic));
+  // }
   return (
     <Main>
       <BtnContainer>
-        <Button onClick={() => saveDic()} ghost>
+        {/* <Button onClick={() => saveDic()} ghost>
           Save
+        </Button> */}
+
+        <Button onClick={addNewJsonHandler} style={{ margin: "1.5rem" }} ghost>
+          新增語系檔
+        </Button>
+
+        <Button
+          onClick={deleteJsonHandler}
+          style={{ margin: "1.5rem" }}
+          ghost
+          danger
+        >
+          刪除語系檔
         </Button>
       </BtnContainer>
 
@@ -296,15 +323,6 @@ export default function Home() {
       <Button onClick={keySearchHandler} style={{ margin: "1.5rem" }}>
         新增 Key & Value
       </Button>
-
-      <Button
-        type="primary"
-        onClick={addNewJsonHandler}
-        style={{ margin: "1.5rem" }}
-      >
-        新增語系檔
-      </Button>
-
       <InputContainer>
         <Select
           value={selected}
@@ -320,75 +338,78 @@ export default function Home() {
               <Th width={"20%"}>Key</Th>
               <Th width={"40%"}>Value</Th>
               <Th width={"20%"}>Options</Th>
-              <Th width={"20%"}>中文參考</Th>
+              <Th width={"20%"}>zh參考</Th>
             </tr>
           </Thead>
           <Tbody>
             {dic &&
-              Object.keys(dic).map((key) => (
-                <tr key={key}>
-                  <Td onClick={() => clickSearch(key)}>{key}</Td>
-                  <Td>
-                    {modifyKey === key && (
-                      <input
-                        value={(dic as any)[key]}
-                        onChange={(event) => {
-                          setDic({ ...dic, [key]: event.target.value });
-                        }}
-                      />
-                    )}
-                    {modifyKey !== key && (dic as any)[key]}
-                  </Td>
-                  <Td>
-                    {key === modifyKey && (
-                      <ButtonGroupsContainer>
-                        <Button
-                          onClick={() => {
-                            setModifyKey("");
+              Object.keys(dic)
+                .sort()
+                .map((key) => (
+                  <tr key={key}>
+                    <Td onClick={() => clickSearch(key)}>{key}</Td>
+                    <Td>
+                      {modifyKey === key && (
+                        <input
+                          value={(dic as any)[key]}
+                          onChange={(event) => {
+                            setDic({ ...dic, [key]: event.target.value });
                           }}
-                          style={{
-                            marginRight: ".5rem",
-                            borderColor: "green",
-                            color: "green",
-                          }}
-                          size={"small"}
-                        >
-                          儲存
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setModifyKey("");
-                          }}
-                          size={"small"}
-                        >
-                          取消
-                        </Button>
-                      </ButtonGroupsContainer>
-                    )}
-                    {modifyKey !== key && (
-                      <ButtonGroupsContainer>
-                        <Button
-                          type="primary"
-                          onClick={() => setModifyKey(key)}
-                          style={{ marginRight: ".5rem" }}
-                          ghost
-                          size={"small"}
-                        >
-                          修改
-                        </Button>
-                        <Button
-                          danger
-                          onClick={() => deleteKey(key)}
-                          size={"small"}
-                        >
-                          刪除
-                        </Button>
-                      </ButtonGroupsContainer>
-                    )}
-                  </Td>
-                  <Td>{(zhList as any)[key]}</Td>
-                </tr>
-              ))}
+                        />
+                      )}
+                      {modifyKey !== key && (dic as any)[key]}
+                    </Td>
+                    <Td>
+                      {key === modifyKey && (
+                        <ButtonGroupsContainer>
+                          <Button
+                            onClick={() => {
+                              setModifyKey("");
+                              saveDic();
+                            }}
+                            style={{
+                              marginRight: ".5rem",
+                              borderColor: "green",
+                              color: "green",
+                            }}
+                            size={"small"}
+                          >
+                            儲存
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setModifyKey("");
+                            }}
+                            size={"small"}
+                          >
+                            取消
+                          </Button>
+                        </ButtonGroupsContainer>
+                      )}
+                      {modifyKey !== key && (
+                        <ButtonGroupsContainer>
+                          <Button
+                            type="primary"
+                            onClick={() => setModifyKey(key)}
+                            style={{ marginRight: ".5rem" }}
+                            ghost
+                            size={"small"}
+                          >
+                            修改
+                          </Button>
+                          <Button
+                            danger
+                            onClick={() => deleteKey(key)}
+                            size={"small"}
+                          >
+                            刪除
+                          </Button>
+                        </ButtonGroupsContainer>
+                      )}
+                    </Td>
+                    <Td>{(zhList as any)[key]}</Td>
+                  </tr>
+                ))}
           </Tbody>
         </Table>
       </TableContainer>
@@ -419,8 +440,8 @@ export default function Home() {
             <Label>Key: </Label>
             <input value={newItem.key} placeholder="請輸入key" />
           </InputGroup>
-          {(files ?? []).map((opt) => (
-            <InputGroup>
+          {(files ?? []).map((opt, index) => (
+            <InputGroup key={index}>
               <PopInfoGroup>
                 <PopInfoTitle>{opt.label}</PopInfoTitle>
                 <input
@@ -446,6 +467,24 @@ export default function Home() {
           setShowAddJsonModal(false);
         }}
         onOk={addNewLangJson}
+      >
+        <InputGroup>
+          <Label>語系：</Label>
+          <input
+            value={newJsonName}
+            onChange={(event) => setNewJsonName(event.target.value)}
+            placeholder="請輸入語系及檔名"
+          />
+        </InputGroup>
+      </Modal>
+      <Modal
+        title={"刪除語系"}
+        width={800}
+        open={showDelJsonModal}
+        onCancel={() => {
+          setShowDelJsonModal(false);
+        }}
+        // onOk={}
       >
         <InputGroup>
           <Label>語系：</Label>
