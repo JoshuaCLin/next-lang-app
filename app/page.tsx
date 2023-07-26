@@ -152,23 +152,28 @@ export default function Home() {
     }
   };
 
-  const deleteKey = async (key: any) => {
+  const deleteKey = async (key: string) => {
     const isConfirmed = window.confirm("確定要刪除嗎？");
     if (!isConfirmed) {
       return;
     }
-
-    // remove first
-    delete (dic as any)[key];
-
-    const resp = await fetch(`/api/lang/${selected}`, {
-      method: "POST",
-      body: JSON.stringify(dic),
-    }).catch((err) => console.error(err));
-
-    if (resp) {
-      setDic({ ...dic });
-    } else {
+  
+    try {
+      const resp = await fetch(`/api/create`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ key: key })
+      });
+  
+      if (resp.ok) {
+        setDic({ ...dic });
+      } else {
+        alert("Failed to delete");
+      }
+    } catch (err) {
+      console.error(err);
       alert("Failed to delete");
     }
   };

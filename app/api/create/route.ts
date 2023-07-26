@@ -17,3 +17,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ isoke: 'N' });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const { key } = await req.json();
+  console.log(key)
+
+  return NextResponse.json({ isok: 'Y' });
+}
