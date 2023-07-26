@@ -236,6 +236,10 @@ export default function Home() {
     setShowAddJsonModal((prev) => !prev);
   };
 
+  const deleteLangJson = async () => {
+    console.log('POST recover')
+  }
+
   const getFiles = async () => {
     const files = await fetch("/api/lang", { method: "GET" })
       .then((res) => res.json())
@@ -484,7 +488,10 @@ export default function Home() {
         onCancel={() => {
           setShowDelJsonModal(false);
         }}
-        // onOk={}
+        onOk={() => {
+          deleteLangJson()
+          setShowDelJsonModal(false);
+        }}
       >
         <InputGroup>
           <Label>語系：</Label>
