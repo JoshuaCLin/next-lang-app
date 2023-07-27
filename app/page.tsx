@@ -114,6 +114,7 @@ export default function Home() {
   const [selected, setSelect] = useState("zh");
   const [selectedDel, setSelectedDel] = useState("請選擇要刪除的語系");
   const [dic, setDic] = useState<{ [key: string]: string }>();
+  const [originalDic, setOriginalDic] = useState<{ [key: string]: string }>();
   const [modifyKey, setModifyKey] = useState("");
   const [newItem, setNewItem] = useState<{
     key: string;
@@ -137,6 +138,7 @@ export default function Home() {
     if (dic) {
       setDic(dic);
       setSelect(value);
+      setOriginalDic(dic);
     }
 
     const zhDic = await fetch(`/api/lang/zh`)
@@ -224,34 +226,26 @@ export default function Home() {
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const keyword = event.target.value.trim().toLowerCase();
+    const keyword = event.target.value.trim();
 
-    console.log(keyword, dic)
-
-    // 处理 dic 可能为 undefined 的情况
-    if (!dic) {
+    if (!originalDic) {
       return;
     }
 
-    // 过滤数据，只保留 Key 值包含关键词的数据
+    if (keyword === "") {
+      setDic(originalDic);
+      return;
+    }
+
     const filteredData: { [key: string]: string } = {};
-    Object.keys(dic).forEach((key) => {
+    Object.keys(originalDic).forEach((key) => {
       if (key.includes(keyword)) {
-        filteredData[key] = dic[key];
+        filteredData[key] = originalDic[key];
       }
     });
-
-    console.log('篩選後的--->', filteredData)
-
-    // 更新过滤后的数据状态
-    // setFilteredData(filteredData);
-    if(keyword === "") {
-      getDic(selected);
-    } else {
-    setDic(filteredData)
-
-    }
+    setDic(filteredData);
   };
+  
 
 
   const addNewJsonHandler = async () => {
@@ -296,7 +290,7 @@ export default function Home() {
     const files = await fetch("/api/lang", { method: "GET" })
       .then((res) => res.json())
       .catch((err) => console.error(err));
-    console.log("files ---->", files);
+    // console.log("files ---->", files);
     if (files) {
       const arr: SelectProps["options"] = [];
       files.forEach((i: any) => {
@@ -321,7 +315,7 @@ export default function Home() {
         const index = files.indexOf("zh");
         files.unshift(files.splice(index, 1)[0]);
       }
-      console.log("files ---->", files);
+      // console.log("files ---->", files);
       if (files) {
         const arr: SelectProps["options"] = [];
         files.forEach((i: any) => {
@@ -345,10 +339,6 @@ export default function Home() {
       init();
     }
   }, [router]);
-
-  useEffect(() => {
-    console.log(`=====newLang==========`, newLangContent);
-  }, [newLangContent]);
 
   useEffect(() => {
     // 获取初始的 dic 数据
