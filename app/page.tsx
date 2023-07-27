@@ -107,7 +107,7 @@ const LoadingPage = styled.div`
 
 export default function Home() {
   const { Search } = Input;
-  const [filteredData, setFilteredData] = useState<{ [key: string]: string }>({});
+  const [searchingValue, setSearchingValue] = useState("")
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps["options"]>([]);
   const [delList, setDelList] = useState<SelectProps["options"]>([]);
@@ -186,6 +186,9 @@ export default function Home() {
       console.error(err);
       alert("Failed to delete");
     }
+
+    setSearchingValue("")
+    getDic(selected);
   };
 
   const keySearchHandler = async () => {
@@ -228,6 +231,8 @@ export default function Home() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const keyword = event.target.value.trim();
 
+    setSearchingValue(keyword)
+
     if (!originalDic) {
       return;
     }
@@ -245,8 +250,6 @@ export default function Home() {
     });
     setDic(filteredData);
   };
-  
-
 
   const addNewJsonHandler = async () => {
     setShowAddJsonModal((prev) => !prev);
@@ -426,6 +429,7 @@ export default function Home() {
           <InputContainer>
             <Label>搜尋Key值：</Label>
             <Input
+              value={searchingValue}
               placeholder="請輸入Key值"
               style={{ width: "15rem" }}
               onChange={handleInputChange}
