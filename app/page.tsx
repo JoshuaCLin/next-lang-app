@@ -107,6 +107,7 @@ const LoadingPage = styled.div`
 
 export default function Home() {
   const { Search } = Input;
+  const [filteredData, setFilteredData] = useState<{ [key: string]: string }>({});
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps["options"]>([]);
   const [delList, setDelList] = useState<SelectProps["options"]>([]);
@@ -222,6 +223,37 @@ export default function Home() {
     setShowModal(true);
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const keyword = event.target.value.trim().toLowerCase();
+
+    console.log(keyword, dic)
+
+    // 处理 dic 可能为 undefined 的情况
+    if (!dic) {
+      return;
+    }
+
+    // 过滤数据，只保留 Key 值包含关键词的数据
+    const filteredData: { [key: string]: string } = {};
+    Object.keys(dic).forEach((key) => {
+      if (key.includes(keyword)) {
+        filteredData[key] = dic[key];
+      }
+    });
+
+    console.log('篩選後的--->', filteredData)
+
+    // 更新过滤后的数据状态
+    // setFilteredData(filteredData);
+    if(keyword === "") {
+      getDic(selected);
+    } else {
+    setDic(filteredData)
+
+    }
+  };
+
+
   const addNewJsonHandler = async () => {
     setShowAddJsonModal((prev) => !prev);
     console.log("新增語系");
@@ -318,6 +350,12 @@ export default function Home() {
     console.log(`=====newLang==========`, newLangContent);
   }, [newLangContent]);
 
+  useEffect(() => {
+    // 获取初始的 dic 数据
+    getDic(selected);
+  }, []);
+  
+
   const selectDelLang = (value: string) => {
     setSelectedDel(value);
   };
@@ -372,7 +410,7 @@ export default function Home() {
             <Label style={{ marginLeft: "1.5rem" }}>Key: </Label>
             <Input
               value={newItem.key}
-              style={{ width: "15rem", padding: "0.25rem 0.25rem 0.25rem 0.5rem"  }}
+              style={{ width: "15rem", padding: "0.25rem 0.25rem 0.25rem 0.5rem" }}
               onChange={(event) =>
                 setNewItem((pre) => ({ ...pre, key: event.target.value }))
               }
@@ -397,8 +435,13 @@ export default function Home() {
           </InputContainer>
           <InputContainer>
             <Label>搜尋Key值：</Label>
-            <Input placeholder="請輸入Key值" style={{ width: "15rem" }} />
+            <Input
+              placeholder="請輸入Key值"
+              style={{ width: "15rem" }}
+              onChange={handleInputChange}
+            />
           </InputContainer>
+
           <TableContainer>
             <Table>
               <Thead>
