@@ -233,13 +233,13 @@ export default function Home() {
     }
 
     if (keyword === "") {
-      setDic(originalDic);
+      setDic(dic);
       return;
     }
 
     const filteredData: { [key: string]: string } = {};
     Object.keys(originalDic).forEach((key) => {
-      if (key.includes(keyword)) {
+      if (key.startsWith(keyword)) {
         filteredData[key] = originalDic[key];
       }
     });
