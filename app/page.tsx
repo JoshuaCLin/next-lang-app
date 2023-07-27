@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getUser } from "./(hooks)/routeGuard";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Button, Modal, Select, Alert, Space, Spin } from "antd";
+import { Button, Modal, Select, Alert, Space, Spin, Input } from "antd";
 import type { SelectProps } from "antd";
 import path from "path";
 const Main = styled.div``;
@@ -89,6 +89,9 @@ const Td = styled.td`
   }
 `;
 
+const KeyContainer = styled.span`
+  text-decoration: underline;
+`;
 const ButtonGroupsContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -103,6 +106,7 @@ const LoadingPage = styled.div`
 `;
 
 export default function Home() {
+  const { Search } = Input;
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps["options"]>([]);
   const [delList, setDelList] = useState<SelectProps["options"]>([]);
@@ -153,20 +157,20 @@ export default function Home() {
   };
 
   const deleteKey = async (key: string) => {
-    const isConfirmed = window.confirm("確定要刪除嗎？");
+    const isConfirmed = window.confirm(`確定要刪除嗎${key}？`);
     if (!isConfirmed) {
       return;
     }
-  
+
     try {
       const resp = await fetch(`/api/create`, {
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ key: key })
+        body: JSON.stringify({ key: key }),
       });
-  
+
       if (resp.ok) {
         // 刪除成功後，重新獲取字典資料
         const updatedDic = { ...dic };
@@ -180,7 +184,6 @@ export default function Home() {
       alert("Failed to delete");
     }
   };
-  
 
   const keySearchHandler = async () => {
     setShowPopKey(true);
@@ -253,6 +256,7 @@ export default function Home() {
     getFiles();
 
     console.log(newJsonName);
+    setNewJsonName("");
     setShowAddJsonModal((prev) => !prev);
   };
 
@@ -319,6 +323,12 @@ export default function Home() {
   };
 
   const deleteLangJson = async (lang: string) => {
+    const isConfirmed = window.confirm(`確定要刪除${lang}語系嗎？`);
+    if (!isConfirmed) {
+      setShowDelJsonModal(false);
+      return;
+    }
+
     console.log("POST recover");
     const deleteJson = await fetch(`/api/lang/${lang}`, {
       method: "DELETE",
@@ -326,11 +336,11 @@ export default function Home() {
         "Content-Type": "application/json",
       },
     });
-
+    // alert(`${lang}語系嗎已刪除`);
     console.log("刪除的是 --->", deleteJson);
     getFiles();
     getDic("zh");
-    setShowDelJsonModal((prev) => !prev);
+    setShowDelJsonModal(false);
   };
 
   return (
@@ -359,19 +369,25 @@ export default function Home() {
           <br />
 
           <InputGroup>
-            <Label style={{ margin: "1.5rem" }}>Key: </Label>
-            <input
+            <Label style={{ marginLeft: "1.5rem" }}>Key: </Label>
+            <Input
               value={newItem.key}
+              style={{ width: "15rem", padding: "0.25rem 0.25rem 0.25rem 0.5rem"  }}
               onChange={(event) =>
                 setNewItem((pre) => ({ ...pre, key: event.target.value }))
               }
               placeholder="請輸入key"
             />
+            <Button
+              onClick={keySearchHandler}
+              style={{ margin: "1.5rem" }}
+              type="primary"
+            >
+              新增 Key & Value
+            </Button>
           </InputGroup>
-          <Button onClick={keySearchHandler} style={{ margin: "1.5rem" }}>
-            新增 Key & Value
-          </Button>
           <InputContainer>
+            <Label>選擇當前顯示的語系檔：</Label>
             <Select
               value={selected}
               style={{ width: "15rem" }}
@@ -379,14 +395,18 @@ export default function Home() {
               options={files}
             ></Select>
           </InputContainer>
+          <InputContainer>
+            <Label>搜尋Key值：</Label>
+            <Input placeholder="請輸入Key值" style={{ width: "15rem" }} />
+          </InputContainer>
           <TableContainer>
             <Table>
               <Thead>
                 <tr>
                   <Th width={"20%"}>Key</Th>
                   <Th width={"40%"}>Value</Th>
-                  <Th width={"20%"}>Options</Th>
                   <Th width={"20%"}>zh參考</Th>
+                  <Th width={"15%"}>Options</Th>
                 </tr>
               </Thead>
               <Tbody>
@@ -395,7 +415,9 @@ export default function Home() {
                     .sort()
                     .map((key) => (
                       <tr key={key}>
-                        <Td onClick={() => clickSearch(key)}>{key}</Td>
+                        <Td onClick={() => clickSearch(key)}>
+                          <KeyContainer> {key}</KeyContainer>
+                        </Td>
                         <Td>
                           {modifyKey === key && (
                             <input
@@ -407,6 +429,7 @@ export default function Home() {
                           )}
                           {modifyKey !== key && (dic as any)[key]}
                         </Td>
+                        <Td>{(zhList as any)[key]}</Td>
                         <Td>
                           {key === modifyKey && (
                             <ButtonGroupsContainer>
@@ -436,7 +459,7 @@ export default function Home() {
                           )}
                           {modifyKey !== key && (
                             <ButtonGroupsContainer>
-                              <Button
+                              {/* <Button
                                 type="primary"
                                 onClick={() => setModifyKey(key)}
                                 style={{ marginRight: ".5rem" }}
@@ -444,7 +467,7 @@ export default function Home() {
                                 size={"small"}
                               >
                                 修改
-                              </Button>
+                              </Button> */}
                               <Button
                                 danger
                                 onClick={() => deleteKey(key)}
@@ -455,7 +478,6 @@ export default function Home() {
                             </ButtonGroupsContainer>
                           )}
                         </Td>
-                        <Td>{(zhList as any)[key]}</Td>
                       </tr>
                     ))}
               </Tbody>
@@ -481,12 +503,19 @@ export default function Home() {
             }}
             onCancel={() => {
               setShowModal(false);
+              setNewItem({ key: "" });
             }}
           >
             <>
               <InputGroup>
                 <Label>Key: </Label>
-                <input value={newItem.key} placeholder="請輸入key" />
+                <input
+                  value={newItem.key}
+                  placeholder="請輸入key"
+                  onChange={() => {
+                    console.log(`不給你輸入，ㄏㄏ`);
+                  }}
+                />
               </InputGroup>
               {(files ?? []).map((opt, index) => (
                 <InputGroup key={index}>
@@ -513,6 +542,7 @@ export default function Home() {
             open={showAddJsonModal}
             onCancel={() => {
               setShowAddJsonModal(false);
+              setNewJsonName("");
             }}
             onOk={addNewLangJson}
           >
@@ -531,6 +561,7 @@ export default function Home() {
             open={showDelJsonModal}
             onCancel={() => {
               setShowDelJsonModal(false);
+              setSelectedDel("請選擇要刪除的語系");
             }}
             onOk={() => deleteLangJson(selectedDel)}
           >
