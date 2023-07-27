@@ -233,7 +233,7 @@ export default function Home() {
     }
 
     if (keyword === "") {
-      setDic(dic);
+      getDic(selected);
       return;
     }
 
