@@ -18,8 +18,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
         return pre;
       }, {});
       res.status(200).json(result);
+      return
     } catch (err) {
       res.status(400).json({});
+      return
     }
   } else {
     res.status(404).json({ isOk: 'N' });

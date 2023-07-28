@@ -13,16 +13,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
   if (req.method === 'GET') {
     const result = GET(req, lang);
     res.status(result.isOk === 'Y' ? 200 : 500).json(result);
+    return
   }
 
   if (req.method === 'POST') {
     const result = POST(req, lang);
     res.status(result ? 200 : 500).json({ isOk: result ? 'Y' : 'N' });
+    return
   }
 
   if (req.method === 'DELETE') {
     const result = DELETE(req, lang);
     res.status(result ? 200 : 500).json({ isOk: result ? 'Y' : 'N' });
+    return
   }
 
   res.status(404).json({ isOk: 'N' });

@@ -10,15 +10,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
   if (req.method === 'POST') {
     const result = POST(req);
     res.status(result ? 200 : 500).json({ isOk: result ? 'Y' : 'N' });
+    return
   }
 
   if (req.method === 'DELETE') {
     const result = DELETE(req);
     res.status(result ? 200 : 500).json({ isOk: result ? 'Y' : 'N' });
+    return
   }
 
   if (req.method === 'GET') {
     res.status(404).json({ isOk: 'N' });
+    return
   }
 }
 
