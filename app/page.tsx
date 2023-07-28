@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getUser } from "./(hooks)/routeGuard";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Button, Modal, Select, Alert, Space, Spin, Input, Form } from "antd";
+import { Button, Modal, Select, Spin, Input } from "antd";
 import type { SelectProps } from "antd";
 
 const Main = styled.div``;
@@ -259,7 +259,6 @@ export default function Home() {
 
   const addNewJsonHandler = async () => {
     setShowAddJsonModal((prev) => !prev);
-    console.log("新增語系");
   };
 
   const deleteJsonHandler = async () => {
@@ -286,11 +285,8 @@ export default function Home() {
       },
     });
 
-    console.log("新增的是 --->", newJson);
-
     getFiles();
 
-    console.log(newJsonName);
     setNewJsonName("");
     setShowAddJsonModal((prev) => !prev);
   };
@@ -299,7 +295,6 @@ export default function Home() {
     const files = await fetch("/api/lang", { method: "GET" })
       .then((res) => res.json())
       .catch((err) => console.error(err));
-    // console.log("files ---->", files);
     if (files) {
       const arr: SelectProps["options"] = [];
       files.forEach((i: any) => {
@@ -315,7 +310,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    console.log("getUser", getUser());
     if (!getUser()) {
       router.replace("login");
     } else {
@@ -328,7 +322,6 @@ export default function Home() {
           const index = files.indexOf("zh");
           files.unshift(files.splice(index, 1)[0]);
         }
-        // console.log("files ---->", files);
         if (files) {
           const arr: SelectProps["options"] = [];
           files.forEach((i: any) => {
@@ -373,14 +366,12 @@ export default function Home() {
       return;
     }
 
-    console.log("POST recover");
     const deleteJson = await fetch(`/api/lang/${lang}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("刪除的是 --->", deleteJson);
     getFiles();
     getDic("zh");
     setShowDelJsonModal(false);
