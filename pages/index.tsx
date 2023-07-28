@@ -1,10 +1,9 @@
-"use client";
 import { useEffect, useState } from "react";
-import { getUser } from "./(hooks)/routeGuard";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Button, Modal, Select, Spin, Input } from "antd";
+import { Button, Modal, Select, Input } from "antd";
 import type { SelectProps } from "antd";
+import Head from "next/head";
 
 const Main = styled.div``;
 
@@ -104,13 +103,7 @@ const ButtonGroupsContainer = styled.div`
   justify-content: center;
 `;
 
-const LoadingPage = styled.div`
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
+
 
 const ErrorMsg = styled.span`
   position: absolute;
@@ -151,27 +144,15 @@ export default function Home() {
       .catch((err) => console.error(err));
 
     if (dic) {
-      setDic(dic);
+      setDic(dic.data);
       setSelect(value);
-      setOriginalDic(dic);
+      setOriginalDic(dic.data);
     }
 
     const zhDic = await fetch(`/api/lang/zh`)
       .then((res) => res.json())
       .catch((err) => console.error(err));
-    setZhList(zhDic);
-  };
-
-  const saveDic = async () => {
-    const resp = await fetch(`/api/lang/${selected}`, {
-      method: "POST",
-      body: JSON.stringify(dic),
-    })
-      .then((res) => res.json())
-      .catch((err) => console.error(err));
-    if (resp) {
-      alert("saved");
-    }
+    setZhList(zhDic.data);
   };
 
   const deleteKey = async (key: string) => {
@@ -183,13 +164,13 @@ export default function Home() {
     try {
       const resp = await fetch(`/api/create`, {
         method: "DELETE",
+        body: JSON.stringify({ key: key }),
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ key: key }),
       });
 
-      if (resp.ok) {
+      if (resp) {
         // 刪除成功後，重新獲取字典資料
         const updatedDic = { ...dic };
         delete updatedDic[key]; // 從更新後的字典中刪除對應的 key
@@ -279,9 +260,9 @@ export default function Home() {
 
     const newJson = await fetch(`/api/lang/${newJsonName.trim()}`, {
       method: "POST",
-      body: JSON.stringify(zhData),
+      body: JSON.stringify(zhData.data),
       headers: {
-        "Content-Type": "application/json",
+        "content-type": "application/json",
       },
     });
 
@@ -297,7 +278,7 @@ export default function Home() {
       .catch((err) => console.error(err));
     if (files) {
       const arr: SelectProps["options"] = [];
-      files.forEach((i: any) => {
+      files.files.forEach((i: any) => {
         arr.push({ label: i, value: i });
       });
       const delListArr: SelectProps["options"] = arr.filter(
@@ -310,35 +291,32 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!getUser()) {
-      router.replace("login");
-    } else {
-      const init = async () => {
-        const files = await fetch("/api/lang", { method: "GET" })
-          .then((res) => res.json())
-          .catch((err) => console.error(err));
-        files.sort().reverse();
-        if (files[0] !== "zh") {
-          const index = files.indexOf("zh");
-          files.unshift(files.splice(index, 1)[0]);
-        }
-        if (files) {
-          const arr: SelectProps["options"] = [];
-          files.forEach((i: any) => {
-            arr.push({ label: i, value: i });
-          });
+    const init = async () => {
+      const {files} = await fetch("/api/lang", { method: "GET" })
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
+      files.sort().reverse();
+      if (files[0] !== "zh") {
+        const index = files.indexOf("zh");
+        files.unshift(files.splice(index, 1)[0]);
+      }
+      if (files) {
+        const arr: SelectProps["options"] = [];
+        files.forEach((i: any) => {
+          arr.push({ label: i, value: i });
+        });
 
-          const delListArr: SelectProps["options"] = arr.filter(
-            (item) => item.label !== "zh"
-          );
-          setDelList(delListArr);
-          setFiles(arr);
-          setSelect("zh");
-          getDic("zh");
-        }
-      };
-      init();
-    }
+        const delListArr: SelectProps["options"] = arr.filter(
+          (item) => item.label !== "zh"
+        );
+        setDelList(delListArr);
+        setFiles(arr);
+        setSelect("zh");
+        getDic("zh");
+      }
+    };
+    init();
+
   }, []);
 
   useEffect(() => {
@@ -406,16 +384,18 @@ export default function Home() {
     }
   };
 
-  const logOut = ()=>{
+  const logOut = () => {
     localStorage.removeItem(`password`)
     localStorage.removeItem(`user`)
     window.location.href = "/login";
   }
   return (
-    <Main>
-      {getUser() && (
-        <div>
-          <HeaderContainer>
+    <>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <Main>
+        <HeaderContainer>
           <BtnContainer>
             <Button
               onClick={addNewJsonHandler}
@@ -444,202 +424,195 @@ export default function Home() {
               登出
             </Button>
           </BtnContainer>
-          </HeaderContainer>
+        </HeaderContainer>
 
-          <br />
+        <br />
 
-          <InputGroup>
-            <Label style={{ marginLeft: "1.5rem" }}>Key: </Label>
-            <Input
-              value={newItem.key}
-              style={{
-                width: "15rem",
-                padding: "0.25rem 0.25rem 0.25rem 0.5rem",
-              }}
-              onChange={handleKeyInput}
-              placeholder="請輸入key"
-            />
-            {validation && <ErrorMsg>{errorMsg}</ErrorMsg>}
-            <Button
-              onClick={keySearchHandler}
-              style={{ margin: "1.5rem" }}
-              type="primary"
-              disabled={validation}
-            >
-              新增 Key & Value
-            </Button>
-          </InputGroup>
-          <InputContainer>
-            <Label>選擇當前顯示的語系檔：</Label>
-            <Select
-              value={selected}
-              style={{ width: "15rem" }}
-              onChange={getDic}
-              options={files}
-            ></Select>
-          </InputContainer>
-          <InputContainer>
-            <Label>搜尋Key值：</Label>
-            <Input
-              value={searchingValue}
-              placeholder="請輸入Key值"
-              style={{ width: "15rem" }}
-              onChange={handleInputChange}
-            />
-          </InputContainer>
-
-          <TableContainer>
-            <Table>
-              <Thead>
-                <tr>
-                  <Th width={"20%"}>Key</Th>
-                  <Th width={"40%"}>Value</Th>
-                  <Th width={"20%"}>zh參考</Th>
-                  <Th width={"15%"}>Options</Th>
-                </tr>
-              </Thead>
-              <Tbody>
-                {dic &&
-                  Object.keys(dic)
-                    .sort()
-                    .map((key) => (
-                      <tr key={key}>
-                        <Td onClick={() => clickSearch(key)}>
-                          <KeyContainer> {key}</KeyContainer>
-                        </Td>
-                        <Td onClick={() => clickSearch(key)}>
-                          {modifyKey === key && (
-                            <input
-                              value={(dic as any)[key]}
-                              onChange={(event) => {
-                                setDic({ ...dic, [key]: event.target.value });
-                              }}
-                            />
-                          )}
-                          {modifyKey !== key && (dic as any)[key]}
-                        </Td>
-                        <Td onClick={() => clickSearch(key)}>
-                          {(zhList as any)[key]}
-                        </Td>
-                        <Td>
-                          {modifyKey !== key && (
-                            <ButtonGroupsContainer>
-                              <Button
-                                danger
-                                onClick={() => deleteKey(key)}
-                                size={"small"}
-                              >
-                                刪除
-                              </Button>
-                            </ButtonGroupsContainer>
-                          )}
-                        </Td>
-                      </tr>
-                    ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
-
-          <Modal
-            title={showPopKey ? "Add 新增" : "Edit 編輯"}
-            open={showModal}
-            onOk={async () => {
-              const res = await fetch("/api/create", {
-                method: "POST",
-                body: JSON.stringify(newItem),
-              });
-              if (res) {
-                setNewItem({ key: "" });
-                alert("saved all");
-                getDic(selected);
-                setShowModal(false);
-              } else {
-                alert("Error");
-              }
+        <InputGroup>
+          <Label style={{ marginLeft: "1.5rem" }}>Key: </Label>
+          <Input
+            value={newItem.key}
+            style={{
+              width: "15rem",
+              padding: "0.25rem 0.25rem 0.25rem 0.5rem",
             }}
-            onCancel={() => {
-              setShowModal(false);
+            onChange={handleKeyInput}
+            placeholder="請輸入key"
+          />
+          {validation && <ErrorMsg>{errorMsg}</ErrorMsg>}
+          <Button
+            onClick={keySearchHandler}
+            style={{ margin: "1.5rem" }}
+            type="primary"
+            disabled={validation}
+          >
+            新增 Key & Value
+          </Button>
+        </InputGroup>
+        <InputContainer>
+          <Label>選擇當前顯示的語系檔：</Label>
+          <Select
+            value={selected}
+            style={{ width: "15rem" }}
+            onChange={getDic}
+            options={files}
+          ></Select>
+        </InputContainer>
+        <InputContainer>
+          <Label>搜尋Key值：</Label>
+          <Input
+            value={searchingValue}
+            placeholder="請輸入Key值"
+            style={{ width: "15rem" }}
+            onChange={handleInputChange}
+          />
+        </InputContainer>
+
+        <TableContainer>
+          <Table>
+            <Thead>
+              <tr>
+                <Th width={"20%"}>Key</Th>
+                <Th width={"40%"}>Value</Th>
+                <Th width={"20%"}>zh參考</Th>
+                <Th width={"15%"}>Options</Th>
+              </tr>
+            </Thead>
+            <Tbody>
+              {dic &&
+                Object.keys(dic)
+                  .sort()
+                  .map((key) => (
+                    <tr key={key}>
+                      <Td onClick={() => clickSearch(key)}>
+                        <KeyContainer> {key}</KeyContainer>
+                      </Td>
+                      <Td onClick={() => clickSearch(key)}>
+                        {modifyKey === key && (
+                          <input
+                            value={(dic as any)[key]}
+                            onChange={(event) => {
+                              setDic({ ...dic, [key]: event.target.value });
+                            }}
+                          />
+                        )}
+                        {modifyKey !== key && (dic as any)[key]}
+                      </Td>
+                      <Td onClick={() => clickSearch(key)}>
+                        {(zhList as any)[key]}
+                      </Td>
+                      <Td>
+                        {modifyKey !== key && (
+                          <ButtonGroupsContainer>
+                            <Button
+                              danger
+                              onClick={() => deleteKey(key)}
+                              size={"small"}
+                            >
+                              刪除
+                            </Button>
+                          </ButtonGroupsContainer>
+                        )}
+                      </Td>
+                    </tr>
+                  ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+
+        <Modal
+          title={showPopKey ? "Add 新增" : "Edit 編輯"}
+          open={showModal}
+          onOk={async () => {
+            const res = await fetch("/api/create", {
+              method: "POST",
+              body: JSON.stringify(newItem),
+              headers: {
+                'content-type':'application/json'
+              },
+            });
+            if (res) {
               setNewItem({ key: "" });
-            }}
-          >
-            <>
-              <InputGroup>
-                <Label>Key: </Label>
-                <input
-                  value={newItem.key}
-                  placeholder="請輸入key"
-                  onChange={handleKeyInput}
-                />
-              </InputGroup>
-              {(files ?? []).map((opt, index) => (
-                <InputGroup key={index}>
-                  <PopInfoGroup>
-                    <PopInfoTitle>{opt.label}</PopInfoTitle>
-                    <Input
-                      value={newItem[opt.label as string]}
-                      style={{ width: "90%", marginRight:"0.75rem" }}
-                      onChange={(event) =>
-                        setNewItem((pre) => ({
-                          ...pre,
-                          [opt.label as string]: event.target.value,
-                        }))
-                      }
-                      placeholder="請輸入 value"
-                    />
-                  </PopInfoGroup>
-                </InputGroup>
-              ))}
-            </>
-          </Modal>
-          <Modal
-            title={"新增語系"}
-            width={800}
-            open={showAddJsonModal}
-            onCancel={() => {
-              setShowAddJsonModal(false);
-              setNewJsonName("");
-            }}
-            onOk={addNewLangJson}
-          >
+              alert("saved all");
+              getDic(selected);
+              setShowModal(false);
+            } else {
+              alert("Error");
+            }
+          }}
+          onCancel={() => {
+            setShowModal(false);
+            setNewItem({ key: "" });
+          }}
+        >
+          <>
             <InputGroup>
-              <Label>語系：</Label>
+              <Label>Key: </Label>
               <input
-                value={newJsonName}
-                onChange={(event) => setNewJsonName(event.target.value)}
-                placeholder="請輸入語系及檔名"
+                value={newItem.key}
+                placeholder="請輸入key"
+                onChange={handleKeyInput}
               />
             </InputGroup>
-          </Modal>
-          <Modal
-            title={"刪除語系"}
-            width={800}
-            open={showDelJsonModal}
-            onCancel={() => {
-              setShowDelJsonModal(false);
-              setSelectedDel("請選擇要刪除的語系");
-            }}
-            onOk={() => deleteLangJson(selectedDel)}
-          >
-            <InputContainer>
-              <Select
-                value={selectedDel}
-                style={{ width: "15rem" }}
-                onChange={selectDelLang}
-                options={delList}
-              ></Select>
-            </InputContainer>
-          </Modal>
-        </div>
-      )}
-      {!getUser() && (
-        <LoadingPage>
-          <div style={{ width: "100%" }}>
-            <Spin tip="Loading" size="large">
-              <div className="content" />
-            </Spin>
-          </div>
-        </LoadingPage>
-      )}
-    </Main>
+            {(files ?? []).map((opt, index) => (
+              <InputGroup key={index}>
+                <PopInfoGroup>
+                  <PopInfoTitle>{opt.label}</PopInfoTitle>
+                  <Input
+                    value={newItem[opt.label as string]}
+                    style={{ width: "90%", marginRight: "0.75rem" }}
+                    onChange={(event) =>
+                      setNewItem((pre) => ({
+                        ...pre,
+                        [opt.label as string]: event.target.value,
+                      }))
+                    }
+                    placeholder="請輸入 value"
+                  />
+                </PopInfoGroup>
+              </InputGroup>
+            ))}
+          </>
+        </Modal>
+        <Modal
+          title={"新增語系"}
+          width={800}
+          open={showAddJsonModal}
+          onCancel={() => {
+            setShowAddJsonModal(false);
+            setNewJsonName("");
+          }}
+          onOk={addNewLangJson}
+        >
+          <InputGroup>
+            <Label>語系：</Label>
+            <input
+              value={newJsonName}
+              onChange={(event) => setNewJsonName(event.target.value)}
+              placeholder="請輸入語系及檔名"
+            />
+          </InputGroup>
+        </Modal>
+        <Modal
+          title={"刪除語系"}
+          width={800}
+          open={showDelJsonModal}
+          onCancel={() => {
+            setShowDelJsonModal(false);
+            setSelectedDel("請選擇要刪除的語系");
+          }}
+          onOk={() => deleteLangJson(selectedDel)}
+        >
+          <InputContainer>
+            <Select
+              value={selectedDel}
+              style={{ width: "15rem" }}
+              onChange={selectDelLang}
+              options={delList}
+            ></Select>
+          </InputContainer>
+        </Modal>
+      </Main>
+    </>
   );
 }
