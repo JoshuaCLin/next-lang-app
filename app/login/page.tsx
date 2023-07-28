@@ -8,6 +8,8 @@ const Container = styled.div`
   margin-top: 5rem;
 `;
 
+const BtnContainer = styled.div``;
+
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -40,9 +42,9 @@ const LoginPage = () => {
         name="basic"
         labelCol={{ span: 5 }}
         wrapperCol={{ span: 16 }}
-        style={{ maxWidth: 600, margin: "20px auto"  }}
+        style={{ maxWidth: 600, margin: "20px auto" }}
         initialValues={{ remember: true }}
-        onFinish={loginHandler}
+        // onFinish={loginHandler}
         // onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
@@ -67,10 +69,11 @@ const LoginPage = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Item>
-
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
+        <BtnContainer>
+          <Button type="primary" onClick={loginHandler}>
+            送出
+          </Button>
+        </BtnContainer>
       </Form>
     </Container>
   );

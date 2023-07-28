@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getUser } from "./(hooks)/routeGuard";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import { Button, Modal, Select, Alert, Space, Spin, Input } from "antd";
+import { Button, Modal, Select, Alert, Space, Spin, Input, Form } from "antd";
 import type { SelectProps } from "antd";
 
 const Main = styled.div``;
@@ -20,7 +20,7 @@ const InputContainer = styled.div`
 
 const InputGroup = styled.div`
   margin-right: 1rem;
-
+  position: relative;
   > input {
     padding: 0.5rem;
     border-radius: 0.5rem;
@@ -83,7 +83,7 @@ const Td = styled.td`
   cursor: pointer;
   &:nth-child(4) {
     border-inline-end: none;
-    cursor: auto
+    cursor: auto;
   }
   > input {
     padding: 0.25rem;
@@ -104,6 +104,14 @@ const LoadingPage = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const ErrorMsg = styled.span`
+  position: absolute;
+  bottom: 0.25rem;
+  left: 5rem;
+  color: red;
+  font-size: 0.75rem;
 `;
 
 export default function Home() {
@@ -130,6 +138,8 @@ export default function Home() {
   const [newLangContent, setNewLangContent] = useState("");
   const [zhList, setZhList] = useState({});
   const [showPopKey, setShowPopKey] = useState(false);
+  const [validation, setValidation] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   // const { TextArea } = Input;
   const getDic = async (value: string) => {
     const dic = await fetch(`/api/lang/${value}`)
@@ -194,15 +204,6 @@ export default function Home() {
 
   const keySearchHandler = async () => {
     setShowPopKey(true);
-    if (newItem.key.trim() === "") {
-      alert("請輸入有效 Key 值");
-      return;
-    }
-    const startsWithNumber = /^[0-9]/.test(newItem.key.trim());
-    if (startsWithNumber) {
-      alert("Key 值不能以數字開頭");
-      return;
-    }
     const res = await fetch(`/api/query/${newItem.key.trim()}`).then((res) =>
       res.json()
     );
@@ -245,7 +246,7 @@ export default function Home() {
 
     const filteredData: { [key: string]: string } = {};
     Object.keys(originalDic).forEach((key) => {
-      if (key.startsWith(keyword)) {
+      if (key.includes(keyword)) {
         filteredData[key] = originalDic[key];
       }
     });
@@ -335,7 +336,6 @@ export default function Home() {
           );
           setDelList(delListArr);
           setFiles(arr);
-          // setSelectedDel("delListArr[2].value");
           setSelect("zh");
           getDic("zh");
         }
@@ -348,6 +348,15 @@ export default function Home() {
     // 获取初始的 dic 数据
     getDic(selected);
   }, []);
+
+  useEffect(() => {
+    // 获取初始的 dic 数据
+    if (newItem.key === "") {
+      setValidation(true);
+      setErrorMsg("")
+    }
+    checkInput(newItem.key);
+  }, [newItem.key]);
 
   const selectDelLang = (value: string) => {
     setSelectedDel(value);
@@ -367,7 +376,6 @@ export default function Home() {
         "Content-Type": "application/json",
       },
     });
-    // alert(`${lang}語系嗎已刪除`);
     console.log("刪除的是 --->", deleteJson);
     getFiles();
     getDic("zh");
@@ -375,18 +383,32 @@ export default function Home() {
   };
 
   const handleKeyInput = (e: any) => {
+    setValidation(false);
     const value = e.target.value;
-    const length = value.length;
-    const reg =  /^[0-9a-zA-Z_.]*$/g
-    if (!reg.test(value)) {
-      alert(`key值只允許輸入「數字」、「字母」或下底線符號「 _ 」以及「 . 」`)
-      return
-    }
-    if (length > 30) {
-      alert(`key值最大字數限制30個字`);
-      return;
-    }
+    checkInput(value);
     setNewItem((pre) => ({ ...pre, key: value }));
+  };
+
+  const checkInput = (value: string) => {
+    const length = value.length;
+    const reg = /^[0-9a-zA-Z_.]*$/g;
+    const startsWithNumber = /^[0-9]/.test(newItem.key.trim());
+    if (!reg.test(value)) {
+      setValidation(true);
+      setErrorMsg(
+        `key值只允許輸入「數字」、「字母」或下底線符號「 _ 」以及「 . 」`
+      );
+    }
+
+    if (length > 30) {
+      setValidation(true);
+      setErrorMsg(`超過最大字數(上限 30 字)`);
+    }
+
+    if (startsWithNumber) {
+      setValidation(true);
+      setErrorMsg(`Key 值不能以數字開頭`);
+    }
   };
 
   return (
@@ -425,10 +447,12 @@ export default function Home() {
               onChange={handleKeyInput}
               placeholder="請輸入key"
             />
+            {validation && <ErrorMsg>{errorMsg}</ErrorMsg>}
             <Button
               onClick={keySearchHandler}
               style={{ margin: "1.5rem" }}
               type="primary"
+              disabled={validation}
             >
               新增 Key & Value
             </Button>
