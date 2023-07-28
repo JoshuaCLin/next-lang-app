@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { Button, Modal, Select, Alert, Space, Spin, Input } from "antd";
 import type { SelectProps } from "antd";
-import path from "path";
+
 const Main = styled.div``;
 
 const BtnContainer = styled.div`
@@ -73,7 +73,6 @@ const Th = styled.th<{ width: string }>`
 
 const Tbody = styled.tbody`
   border-top: 1px solid grey;
-  cursor: pointer;
 `;
 
 const Td = styled.td`
@@ -81,8 +80,10 @@ const Td = styled.td`
   text-align: center;
   border-inline-end: 1px solid #000;
   border-bottom: 1px solid #000;
+  cursor: pointer;
   &:nth-child(4) {
     border-inline-end: none;
+    cursor: auto
   }
   > input {
     padding: 0.25rem;
@@ -107,7 +108,7 @@ const LoadingPage = styled.div`
 
 export default function Home() {
   const { Search } = Input;
-  const [searchingValue, setSearchingValue] = useState("")
+  const [searchingValue, setSearchingValue] = useState("");
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps["options"]>([]);
   const [delList, setDelList] = useState<SelectProps["options"]>([]);
@@ -187,7 +188,7 @@ export default function Home() {
       alert("Failed to delete");
     }
 
-    setSearchingValue("")
+    setSearchingValue("");
     getDic(selected);
   };
 
@@ -231,7 +232,7 @@ export default function Home() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const keyword = event.target.value.trim();
 
-    setSearchingValue(keyword)
+    setSearchingValue(keyword);
 
     if (!originalDic) {
       return;
@@ -309,7 +310,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    console.log("getUser", getUser())
+    console.log("getUser", getUser());
     if (!getUser()) {
       router.replace("login");
     } else {
@@ -328,7 +329,7 @@ export default function Home() {
           files.forEach((i: any) => {
             arr.push({ label: i, value: i });
           });
-  
+
           const delListArr: SelectProps["options"] = arr.filter(
             (item) => item.label !== "zh"
           );
@@ -338,7 +339,7 @@ export default function Home() {
           setSelect("zh");
           getDic("zh");
         }
-      }
+      };
       init();
     }
   }, []);
@@ -347,7 +348,6 @@ export default function Home() {
     // 获取初始的 dic 数据
     getDic(selected);
   }, []);
-  
 
   const selectDelLang = (value: string) => {
     setSelectedDel(value);
@@ -372,6 +372,21 @@ export default function Home() {
     getFiles();
     getDic("zh");
     setShowDelJsonModal(false);
+  };
+
+  const handleKeyInput = (e: any) => {
+    const value = e.target.value;
+    const length = value.length;
+    const reg =  /^[0-9a-zA-Z_.]*$/g
+    if (!reg.test(value)) {
+      alert(`key值只允許輸入「數字」、「字母」或下底線符號「 _ 」以及「 . 」`)
+      return
+    }
+    if (length > 30) {
+      alert(`key值最大字數限制30個字`);
+      return;
+    }
+    setNewItem((pre) => ({ ...pre, key: value }));
   };
 
   return (
@@ -403,10 +418,11 @@ export default function Home() {
             <Label style={{ marginLeft: "1.5rem" }}>Key: </Label>
             <Input
               value={newItem.key}
-              style={{ width: "15rem", padding: "0.25rem 0.25rem 0.25rem 0.5rem" }}
-              onChange={(event) =>
-                setNewItem((pre) => ({ ...pre, key: event.target.value }))
-              }
+              style={{
+                width: "15rem",
+                padding: "0.25rem 0.25rem 0.25rem 0.5rem",
+              }}
+              onChange={handleKeyInput}
               placeholder="請輸入key"
             />
             <Button
@@ -455,7 +471,7 @@ export default function Home() {
                         <Td onClick={() => clickSearch(key)}>
                           <KeyContainer> {key}</KeyContainer>
                         </Td>
-                        <Td>
+                        <Td onClick={() => clickSearch(key)}>
                           {modifyKey === key && (
                             <input
                               value={(dic as any)[key]}
@@ -466,45 +482,12 @@ export default function Home() {
                           )}
                           {modifyKey !== key && (dic as any)[key]}
                         </Td>
-                        <Td>{(zhList as any)[key]}</Td>
+                        <Td onClick={() => clickSearch(key)}>
+                          {(zhList as any)[key]}
+                        </Td>
                         <Td>
-                          {key === modifyKey && (
-                            <ButtonGroupsContainer>
-                              <Button
-                                onClick={() => {
-                                  setModifyKey("");
-                                  saveDic();
-                                }}
-                                style={{
-                                  marginRight: ".5rem",
-                                  borderColor: "green",
-                                  color: "green",
-                                }}
-                                size={"small"}
-                              >
-                                儲存
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  setModifyKey("");
-                                }}
-                                size={"small"}
-                              >
-                                取消
-                              </Button>
-                            </ButtonGroupsContainer>
-                          )}
                           {modifyKey !== key && (
                             <ButtonGroupsContainer>
-                              {/* <Button
-                                type="primary"
-                                onClick={() => setModifyKey(key)}
-                                style={{ marginRight: ".5rem" }}
-                                ghost
-                                size={"small"}
-                              >
-                                修改
-                              </Button> */}
                               <Button
                                 danger
                                 onClick={() => deleteKey(key)}
@@ -549,9 +532,7 @@ export default function Home() {
                 <input
                   value={newItem.key}
                   placeholder="請輸入key"
-                  onChange={() => {
-                    console.log(`不給你輸入，ㄏㄏ`);
-                  }}
+                  onChange={handleKeyInput}
                 />
               </InputGroup>
               {(files ?? []).map((opt, index) => (
