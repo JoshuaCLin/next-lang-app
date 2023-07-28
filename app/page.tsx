@@ -35,10 +35,11 @@ const InputGroup = styled.div`
 const PopInfoGroup = styled.div`
   display: flex;
   margin: 0.75rem auto;
+  justify-content:space-between;
 `;
 
 const PopInfoTitle = styled.div`
-  width: 3rem;
+  width: 3.5rem;
   font-weight: 700;
   font-size: 0.85rem;
 `;
@@ -120,7 +121,6 @@ const ErrorMsg = styled.span`
 `;
 
 export default function Home() {
-  const { Search } = Input;
   const [searchingValue, setSearchingValue] = useState("");
   const router = useRouter();
   const [files, setFiles] = useState<SelectProps["options"]>([]);
@@ -145,7 +145,6 @@ export default function Home() {
   const [showPopKey, setShowPopKey] = useState(false);
   const [validation, setValidation] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  // const { TextArea } = Input;
   const getDic = async (value: string) => {
     const dic = await fetch(`/api/lang/${value}`)
       .then((res) => res.json())
@@ -585,8 +584,9 @@ export default function Home() {
                 <InputGroup key={index}>
                   <PopInfoGroup>
                     <PopInfoTitle>{opt.label}</PopInfoTitle>
-                    <input
+                    <Input
                       value={newItem[opt.label as string]}
+                      style={{ width: "90%", marginRight:"0.75rem" }}
                       onChange={(event) =>
                         setNewItem((pre) => ({
                           ...pre,
