@@ -309,39 +309,39 @@ export default function Home() {
   };
 
   useEffect(() => {
-    async function init() {
-      const files = await fetch("/api/lang", { method: "GET" })
-        .then((res) => res.json())
-        .catch((err) => console.error(err));
-      files.sort().reverse();
-      if (files[0] !== "zh") {
-        const index = files.indexOf("zh");
-        files.unshift(files.splice(index, 1)[0]);
-      }
-      // console.log("files ---->", files);
-      if (files) {
-        const arr: SelectProps["options"] = [];
-        files.forEach((i: any) => {
-          arr.push({ label: i, value: i });
-        });
-
-        const delListArr: SelectProps["options"] = arr.filter(
-          (item) => item.label !== "zh"
-        );
-        setDelList(delListArr);
-        setFiles(arr);
-        // setSelectedDel("delListArr[2].value");
-        setSelect("zh");
-        getDic("zh");
-      }
-    }
-
+    console.log("getUser", getUser())
     if (!getUser()) {
       router.replace("login");
     } else {
+      const init = async () => {
+        const files = await fetch("/api/lang", { method: "GET" })
+          .then((res) => res.json())
+          .catch((err) => console.error(err));
+        files.sort().reverse();
+        if (files[0] !== "zh") {
+          const index = files.indexOf("zh");
+          files.unshift(files.splice(index, 1)[0]);
+        }
+        // console.log("files ---->", files);
+        if (files) {
+          const arr: SelectProps["options"] = [];
+          files.forEach((i: any) => {
+            arr.push({ label: i, value: i });
+          });
+  
+          const delListArr: SelectProps["options"] = arr.filter(
+            (item) => item.label !== "zh"
+          );
+          setDelList(delListArr);
+          setFiles(arr);
+          // setSelectedDel("delListArr[2].value");
+          setSelect("zh");
+          getDic("zh");
+        }
+      }
       init();
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     // 获取初始的 dic 数据
