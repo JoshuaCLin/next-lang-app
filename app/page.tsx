@@ -8,8 +8,13 @@ import type { SelectProps } from "antd";
 
 const Main = styled.div``;
 
-const BtnContainer = styled.div`
+const HeaderContainer = styled.div`
   background: black;
+  display:flex;
+  justify-content:space-between;
+`
+
+const BtnContainer = styled.div`
   padding: 0.5rem;
 `;
 
@@ -411,10 +416,16 @@ export default function Home() {
     }
   };
 
+  const logOut = ()=>{
+    localStorage.removeItem(`password`)
+    localStorage.removeItem(`user`)
+    window.location.href = "/login";
+  }
   return (
     <Main>
       {getUser() && (
         <div>
+          <HeaderContainer>
           <BtnContainer>
             <Button
               onClick={addNewJsonHandler}
@@ -433,6 +444,17 @@ export default function Home() {
               刪除語系檔
             </Button>
           </BtnContainer>
+
+          <BtnContainer>
+            <Button
+              onClick={logOut}
+              style={{ margin: "1.5rem" }}
+              type="primary"
+            >
+              登出
+            </Button>
+          </BtnContainer>
+          </HeaderContainer>
 
           <br />
 
