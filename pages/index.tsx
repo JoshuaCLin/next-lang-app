@@ -9,9 +9,9 @@ const Main = styled.div``;
 
 const HeaderContainer = styled.div`
   background: black;
-  display:flex;
-  justify-content:space-between;
-`
+  display: flex;
+  justify-content: space-between;
+`;
 
 const BtnContainer = styled.div`
   padding: 0.5rem;
@@ -34,7 +34,7 @@ const InputGroup = styled.div`
 const PopInfoGroup = styled.div`
   display: flex;
   margin: 0.75rem auto;
-  justify-content:space-between;
+  justify-content: space-between;
 `;
 
 const PopInfoTitle = styled.div`
@@ -103,12 +103,10 @@ const ButtonGroupsContainer = styled.div`
   justify-content: center;
 `;
 
-
-
-const ErrorMsg = styled.span`
+const ErrorMsg = styled.span<{ left: string }>`
   position: absolute;
   bottom: 0.25rem;
-  left: 5rem;
+  left: ${(p) => p.left};
   color: red;
   font-size: 0.75rem;
 `;
@@ -292,7 +290,7 @@ export default function Home() {
 
   useEffect(() => {
     const init = async () => {
-      const {files} = await fetch("/api/lang", { method: "GET" })
+      const { files } = await fetch("/api/lang", { method: "GET" })
         .then((res) => res.json())
         .catch((err) => console.error(err));
       files.sort().reverse();
@@ -316,7 +314,6 @@ export default function Home() {
       }
     };
     init();
-
   }, []);
 
   useEffect(() => {
@@ -328,7 +325,7 @@ export default function Home() {
     // 获取初始的 dic 数据
     if (newItem.key === "") {
       setValidation(true);
-      setErrorMsg("")
+      setErrorMsg("");
     }
     checkInput(newItem.key);
   }, [newItem.key]);
@@ -385,10 +382,10 @@ export default function Home() {
   };
 
   const logOut = () => {
-    localStorage.removeItem(`password`)
-    localStorage.removeItem(`user`)
+    localStorage.removeItem(`password`);
+    localStorage.removeItem(`user`);
     window.location.href = "/login";
-  }
+  };
   return (
     <>
       <Head>
@@ -439,7 +436,7 @@ export default function Home() {
             onChange={handleKeyInput}
             placeholder="請輸入key"
           />
-          {validation && <ErrorMsg>{errorMsg}</ErrorMsg>}
+          {validation && <ErrorMsg left={'5rem'}>{errorMsg}</ErrorMsg>}
           <Button
             onClick={keySearchHandler}
             style={{ margin: "1.5rem" }}
@@ -524,11 +521,15 @@ export default function Home() {
           title={showPopKey ? "Add 新增" : "Edit 編輯"}
           open={showModal}
           onOk={async () => {
+            if(validation) {
+              alert(`請輸入正確格式的key值`)
+              return
+            }
             const res = await fetch("/api/create", {
               method: "POST",
               body: JSON.stringify(newItem),
               headers: {
-                'content-type':'application/json'
+                "content-type": "application/json",
               },
             });
             if (res) {
@@ -548,29 +549,33 @@ export default function Home() {
           <>
             <InputGroup>
               <Label>Key: </Label>
-              <input
+              <Input
                 value={newItem.key}
-                placeholder="請輸入key"
+                style={{
+                  width: "15rem",
+                  padding: "0.25rem 0.25rem 0.25rem 0.5rem",
+                  marginBottom: " 1.5rem",
+                }}
                 onChange={handleKeyInput}
+                placeholder="請輸入key"
               />
+              {validation && <ErrorMsg left={'3rem'}>{errorMsg}</ErrorMsg>}
             </InputGroup>
             {(files ?? []).map((opt, index) => (
-              <InputGroup key={index}>
-                <PopInfoGroup>
-                  <PopInfoTitle>{opt.label}</PopInfoTitle>
-                  <Input
-                    value={newItem[opt.label as string]}
-                    style={{ width: "90%", marginRight: "0.75rem" }}
-                    onChange={(event) =>
-                      setNewItem((pre) => ({
-                        ...pre,
-                        [opt.label as string]: event.target.value,
-                      }))
-                    }
-                    placeholder="請輸入 value"
-                  />
-                </PopInfoGroup>
-              </InputGroup>
+              <PopInfoGroup key={index}>
+                <PopInfoTitle>{opt.label}</PopInfoTitle>
+                <Input
+                  value={newItem[opt.label as string]}
+                  style={{ width: "90%", marginRight: "0.75rem" }}
+                  onChange={(event) =>
+                    setNewItem((pre) => ({
+                      ...pre,
+                      [opt.label as string]: event.target.value,
+                    }))
+                  }
+                  placeholder="請輸入 value"
+                />
+              </PopInfoGroup>
             ))}
           </>
         </Modal>
