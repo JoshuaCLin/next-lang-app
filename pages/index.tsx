@@ -391,10 +391,6 @@ export default function Home() {
     window.location.href = "/login";
   };
 
-  useEffect(() => {
-    console.log('123')
-  }, [files])
-
   return (
     <>
       <Head>
@@ -572,23 +568,23 @@ export default function Home() {
               {forbid && <ErrorMsg $left={"3rem"}>{errorMsg}</ErrorMsg>}
             </InputGroup>
             {(files || [])
-            .sort((a, b) => (a.label === "zh" ? -1 : b.label === "zh" ? 1 : 0))
-            .map((opt, index) => (
-              <PopInfoGroup key={index}>
-                <PopInfoTitle>{opt.label}</PopInfoTitle>
-                <Input
-                  value={newItem[opt.label as string]}
-                  style={{ width: "90%", marginRight: "0.75rem" }}
-                  onChange={(event) =>
-                    setNewItem((pre) => ({
-                      ...pre,
-                      [opt.label as string]: event.target.value,
-                    }))
-                  }
-                  placeholder="請輸入 value"
-                />
-              </PopInfoGroup>
-            ))}
+              .sort((a, b) => (a.label === "zh" ? -1 : b.label === "zh" ? 1 : 0))
+              .map((opt, index) => (
+                <PopInfoGroup key={index}>
+                  <PopInfoTitle>{opt.label}</PopInfoTitle>
+                  <Input
+                    value={newItem[opt.label as string]}
+                    style={{ width: "90%", marginRight: "0.75rem" }}
+                    onChange={(event) =>
+                      setNewItem((pre) => ({
+                        ...pre,
+                        [opt.label as string]: event.target.value,
+                      }))
+                    }
+                    placeholder="請輸入 value"
+                  />
+                </PopInfoGroup>
+              ))}
           </>
         </Modal>
         <Modal

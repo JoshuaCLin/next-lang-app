@@ -2,7 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/query/[key]": "pages/api/query/[key].js",
   "/api/lang/[lang]": "pages/api/lang/[lang].js",
   "/": "pages/index.js",
   "/api/lang": "pages/api/lang.js"
