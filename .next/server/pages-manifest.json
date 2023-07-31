@@ -2,7 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/lang": "pages/api/lang.js",
   "/": "pages/index.js",
+  "/api/lang": "pages/api/lang.js",
   "/api/lang/[lang]": "pages/api/lang/[lang].js"
 }

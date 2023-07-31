@@ -112,6 +112,13 @@ const ErrorMsg = styled.span<{ $left: string }>`
   font-size: 0.75rem;
 `;
 
+const ErrorTip = styled.div`
+  height: 20px;
+  color: red;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+`;
+
 export default function Home() {
   const [searchingValue, setSearchingValue] = useState("");
   const router = useRouter();
@@ -137,6 +144,8 @@ export default function Home() {
   const [showPopKey, setShowPopKey] = useState(false);
   const [forbid, setForbid] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  // const [forbidTips, setForbidTips] = useState(false);
+  const [errorTips, setErrorTips] = useState("")
   const getDic = async (value: string) => {
     const dic = await fetch(`/api/lang/${value}`)
       .then((res) => res.json())
@@ -248,22 +257,23 @@ export default function Home() {
   const addNewLangJson = async () => {
     const containsSpecialChars = /[^A-Za-z0-9_]/.test(newJsonName.trim());
     const containsSpaces = /\s/.test(newJsonName.trim());
-
+  
     if (containsSpecialChars || containsSpaces) {
       setNewJsonName("");
-      alert("語系及檔名只能包含字母、數字和底線，不能包含特殊符號和空白");
+      setErrorTips(`語系及檔名只能包含字母、數字和底線，不能包含特殊符號和空白`);
       return;
     }
-
-    const nameExists = delList && delList.map((item) => item.label === newJsonName.trim());
+  
+    const nameExists = delList && delList.some((item) => item.label === newJsonName.trim());
+  
     if (nameExists) {
       setNewJsonName("");
-      alert("已存在相同的語系及檔名");
+      setErrorTips(`已存在相同的語系及檔名`);
       return;
     }
-
+  
     const zhData = await fetch(`/api/lang/zh`).then((res) => res.json());
-
+  
     const newJson = await fetch(`/api/lang/${newJsonName.trim()}`, {
       method: "POST",
       body: JSON.stringify(zhData.data),
@@ -271,12 +281,13 @@ export default function Home() {
         "content-type": "application/json",
       },
     });
-
+  
     getFiles();
-
+    setErrorTips("");
     setNewJsonName("");
     setShowAddJsonModal((prev) => !prev);
   };
+  
 
   const getFiles = async () => {
     const files = await fetch("/api/lang", { method: "GET" })
@@ -601,16 +612,18 @@ export default function Home() {
           onCancel={() => {
             setShowAddJsonModal(false);
             setNewJsonName("");
+            setErrorTips("")
           }}
           onOk={addNewLangJson}
         >
           <InputGroup>
             <Label>語系：</Label>
-            <input
+            <Input
               value={newJsonName}
               onChange={(event) => setNewJsonName(event.target.value)}
               placeholder="請輸入語系及檔名"
             />
+            <ErrorTip>{errorTips}</ErrorTip>
           </InputGroup>
         </Modal>
         <Modal
