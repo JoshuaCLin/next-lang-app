@@ -255,6 +255,13 @@ export default function Home() {
       return;
     }
 
+    const nameExists = delList && delList.map((item) => item.label === newJsonName.trim());
+    if (nameExists) {
+      setNewJsonName("");
+      alert("已存在相同的語系及檔名");
+      return;
+    }
+
     const zhData = await fetch(`/api/lang/zh`).then((res) => res.json());
 
     const newJson = await fetch(`/api/lang/${newJsonName.trim()}`, {

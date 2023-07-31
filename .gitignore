@@ -4,7 +4,7 @@ npm-debug.log
 yarn-error.log
 
 # Next.js build output
-# /.next/
+/.next/
 /out/
 json
 
