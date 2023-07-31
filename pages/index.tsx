@@ -135,7 +135,7 @@ export default function Home() {
   const [newLangContent, setNewLangContent] = useState("");
   const [zhList, setZhList] = useState({});
   const [showPopKey, setShowPopKey] = useState(false);
-  const [validation, setValidation] = useState(false);
+  const [forbid, setForbid] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const getDic = async (value: string) => {
     const dic = await fetch(`/api/lang/${value}`)
@@ -325,9 +325,12 @@ export default function Home() {
   useEffect(() => {
     // 获取初始的 dic 数据
     if (newItem.key === "") {
-      setValidation(true);
+      setForbid(true);
       setErrorMsg("");
+    } else {
+      setForbid(false);
     }
+
     checkInput(newItem.key);
   }, [newItem.key]);
 
@@ -354,7 +357,7 @@ export default function Home() {
   };
 
   const handleKeyInput = (e: any) => {
-    setValidation(false);
+    // setForbid(false);
     const value = e.target.value;
     checkInput(value);
     setNewItem((pre) => ({ ...pre, key: value }));
@@ -365,19 +368,19 @@ export default function Home() {
     const reg = /^[0-9a-zA-Z_.]*$/g;
     const startsWithNumber = /^[0-9]/.test(newItem.key.trim());
     if (!reg.test(value)) {
-      setValidation(true);
+      setForbid(true);
       setErrorMsg(
         `key值只允許輸入「數字」、「字母」或下底線符號「 _ 」以及「 . 」`
       );
     }
 
     if (length > 30) {
-      setValidation(true);
+      setForbid(true);
       setErrorMsg(`超過最大字數(上限 30 字)`);
     }
 
     if (startsWithNumber) {
-      setValidation(true);
+      setForbid(true);
       setErrorMsg(`Key 值不能以數字開頭`);
     }
   };
@@ -437,12 +440,12 @@ export default function Home() {
             onChange={handleKeyInput}
             placeholder="請輸入key"
           />
-          {validation && <ErrorMsg $left={"5rem"}>{errorMsg}</ErrorMsg>}
+          {forbid && <ErrorMsg $left={"5rem"}>{errorMsg}</ErrorMsg>}
           <Button
             onClick={keySearchHandler}
             style={{ margin: "1.5rem" }}
             type="primary"
-            disabled={validation}
+            disabled={forbid}
           >
             新增 Key & Value
           </Button>
@@ -522,7 +525,7 @@ export default function Home() {
           title={showPopKey ? "Add 新增" : "Edit 編輯"}
           open={showModal}
           onOk={async () => {
-            if (validation) {
+            if (forbid) {
               alert(`請輸入正確格式的key值`);
               return;
             }
@@ -560,7 +563,7 @@ export default function Home() {
                 onChange={handleKeyInput}
                 placeholder="請輸入key"
               />
-              {validation && <ErrorMsg $left={"3rem"}>{errorMsg}</ErrorMsg>}
+              {forbid && <ErrorMsg $left={"3rem"}>{errorMsg}</ErrorMsg>}
             </InputGroup>
             {(files ?? []).map((opt, index) => (
               <PopInfoGroup key={index}>
