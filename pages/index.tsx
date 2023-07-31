@@ -394,6 +394,7 @@ export default function Home() {
     <>
       <Head>
         <link rel="icon" href="/favicon.ico" />
+        <title>多語系設定頁面</title>
       </Head>
       <Main>
         <HeaderContainer>

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Button, Divider, Form, Input, Spin } from "antd";
+import { Button, Form, Input } from "antd";
 import styled from "styled-components";
+import Head from "next/head";
 
 
 const Container = styled.div`
@@ -31,6 +32,9 @@ const LoginPage = () => {
 
   return (
     <Container>
+      <Head>
+        <title>多語系登入頁面</title>
+      </Head>
       <h1>語言包管理系統</h1>
       <Form
         name="basic"
