@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Button, Modal, Select, Input } from "antd";
 import type { SelectProps } from "antd";
 import Head from "next/head";
+import React from "react";
 
 const Main = styled.div``;
 
@@ -103,10 +104,10 @@ const ButtonGroupsContainer = styled.div`
   justify-content: center;
 `;
 
-const ErrorMsg = styled.span<{ left: string }>`
+const ErrorMsg = styled.span<{ $left: string }>`
   position: absolute;
   bottom: 0.25rem;
-  left: ${(p) => p.left};
+  left: ${(p) => p.$left};
   color: red;
   font-size: 0.75rem;
 `;
@@ -436,7 +437,7 @@ export default function Home() {
             onChange={handleKeyInput}
             placeholder="請輸入key"
           />
-          {validation && <ErrorMsg left={'5rem'}>{errorMsg}</ErrorMsg>}
+          {validation && <ErrorMsg $left={"5rem"}>{errorMsg}</ErrorMsg>}
           <Button
             onClick={keySearchHandler}
             style={{ margin: "1.5rem" }}
@@ -521,9 +522,9 @@ export default function Home() {
           title={showPopKey ? "Add 新增" : "Edit 編輯"}
           open={showModal}
           onOk={async () => {
-            if(validation) {
-              alert(`請輸入正確格式的key值`)
-              return
+            if (validation) {
+              alert(`請輸入正確格式的key值`);
+              return;
             }
             const res = await fetch("/api/create", {
               method: "POST",
@@ -559,7 +560,7 @@ export default function Home() {
                 onChange={handleKeyInput}
                 placeholder="請輸入key"
               />
-              {validation && <ErrorMsg left={'3rem'}>{errorMsg}</ErrorMsg>}
+              {validation && <ErrorMsg $left={"3rem"}>{errorMsg}</ErrorMsg>}
             </InputGroup>
             {(files ?? []).map((opt, index) => (
               <PopInfoGroup key={index}>
