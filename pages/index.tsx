@@ -390,6 +390,11 @@ export default function Home() {
     localStorage.removeItem(`user`);
     window.location.href = "/login";
   };
+
+  useEffect(() => {
+    console.log('123')
+  }, [files])
+
   return (
     <>
       <Head>
@@ -566,7 +571,9 @@ export default function Home() {
               />
               {forbid && <ErrorMsg $left={"3rem"}>{errorMsg}</ErrorMsg>}
             </InputGroup>
-            {(files ?? []).map((opt, index) => (
+            {(files || [])
+            .sort((a, b) => (a.label === "zh" ? -1 : b.label === "zh" ? 1 : 0))
+            .map((opt, index) => (
               <PopInfoGroup key={index}>
                 <PopInfoTitle>{opt.label}</PopInfoTitle>
                 <Input
